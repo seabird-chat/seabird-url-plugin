@@ -3,6 +3,7 @@ package url
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/seabird-irc/seabird-url-plugin/pb"
@@ -21,7 +22,42 @@ type Client struct {
 func NewClient(seabirdCoreUrl, seabirdCoreToken string) (*Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	channel, err := grpc.DialContext(ctx, seabirdCoreUrl, grpc.WithTransportCredentials(credentials.NewTLS(nil)), grpc.WithBlock())
+
+	u, err := url.Parse(seabirdCoreUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	// gRPC is a little frustrating in that it doesn't handle actual URLs, so we
+	// handle the parsing ourselves.
+	host := u.Hostname()
+	port := u.Port()
+	insecure := false
+	if u.Scheme == "http" {
+		insecure = true
+		if port == "" {
+			port = "80"
+		}
+	} else if u.Scheme == "https" {
+		if port == "" {
+			port = "443"
+		}
+	} else {
+		return nil, fmt.Errorf("Unknown scheme: %s", u.Scheme)
+	}
+
+	// If connecting over http, we need to allow insecure connections or it will
+	// not work.
+	var opts []grpc.DialOption
+	if insecure {
+		opts = append(opts, grpc.WithInsecure(), grpc.WithBlock())
+	} else {
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(nil)), grpc.WithBlock())
+	}
+
+	finalUrl := fmt.Sprintf("%s:%s", host, port)
+
+	channel, err := grpc.DialContext(ctx, finalUrl, opts...)
 	if err != nil {
 		return nil, err
 	}
