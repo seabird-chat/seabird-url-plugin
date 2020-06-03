@@ -107,8 +107,8 @@ func (c *Client) Run() error {
 		&pb.StreamEventsRequest{
 			Identity: c.identity,
 			Commands: map[string]*pb.CommandMetadata{
-				"down": {
-					Name:      "down",
+				"isitdown": {
+					Name:      "isitdown",
 					ShortHelp: "<website>",
 					FullHelp:  "Checks if given website is down",
 				},
@@ -127,7 +127,7 @@ func (c *Client) Run() error {
 
 		switch v := event.GetInner().(type) {
 		case *pb.Event_Command:
-			if v.Command.Command == "down" {
+			if v.Command.Command == "isitdown" {
 				c.isItDownCallback(v.Command)
 			}
 		case *pb.Event_Message:
