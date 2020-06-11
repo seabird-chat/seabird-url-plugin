@@ -101,7 +101,7 @@ func (p *YoutubeProvider) handle(c *Client, event *pb.MessageEvent, req *url.URL
 		return false
 	}
 
-	c.ReplyTof(event.ReplyTo, "%s %s ~ %s", youtubePrefix, time, title)
+	c.Replyf(event.Source, "%s %s ~ %s", youtubePrefix, time, title)
 
 	return true
 }

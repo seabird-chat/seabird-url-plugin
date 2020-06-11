@@ -44,7 +44,7 @@ func (p *TwitterProvider) GetMessageCallback() MessageCallback {
 }
 
 func (p *TwitterProvider) msgCallback(c *Client, event *pb.MessageEvent) {
-	for _, matches := range twitterPrivmsgUserRegex.FindAllStringSubmatch(event.Message, -1) {
+	for _, matches := range twitterPrivmsgUserRegex.FindAllStringSubmatch(event.Text, -1) {
 		p.getUser(c, event, matches[1])
 	}
 }
@@ -66,7 +66,7 @@ func (p *TwitterProvider) getUser(c *Client, event *pb.MessageEvent, text string
 	}
 
 	// Jay Vana (@jsvana) - Description description
-	c.ReplyTof(event.ReplyTo, "%s %s (@%s) - %s", twitterPrefix, user.Name, user.ScreenName, user.Description)
+	c.Replyf(event.Source, "%s %s (@%s) - %s", twitterPrefix, user.Name, user.ScreenName, user.Description)
 
 	return true
 }
@@ -83,7 +83,7 @@ func (p *TwitterProvider) getTweet(c *Client, event *pb.MessageEvent, text strin
 	}
 
 	// Tweet text (@jsvana)
-	c.ReplyTof(event.ReplyTo, "%s %s (@%s)", twitterPrefix, tweet.Text, tweet.User.ScreenName)
+	c.Replyf(event.Source, "%s %s (@%s)", twitterPrefix, tweet.Text, tweet.User.ScreenName)
 
 	return true
 }

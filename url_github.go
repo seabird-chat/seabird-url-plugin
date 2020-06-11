@@ -124,7 +124,7 @@ func (p *GithubProvider) getUser(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, ret)
+	c.Reply(event.Source, ret)
 
 	return true
 
@@ -174,7 +174,7 @@ func (p *GithubProvider) getRepo(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, ret)
+	c.Reply(event.Source, ret)
 
 	return true
 
@@ -216,7 +216,7 @@ func (p *GithubProvider) getIssue(c *Client, event *pb.MessageEvent, url string)
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, ret)
+	c.Reply(event.Source, ret)
 
 	return true
 
@@ -261,7 +261,7 @@ func (p *GithubProvider) getPull(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, ret)
+	c.Reply(event.Source, ret)
 
 	return true
 
@@ -300,7 +300,7 @@ func (p *GithubProvider) getGist(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, ret)
+	c.Reply(event.Source, ret)
 
 	return true
 }

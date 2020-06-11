@@ -10,7 +10,7 @@ func (c *Client) isItDownCallback(event *pb.CommandEvent) {
 	go func() {
 		url, err := url.Parse(event.Arg)
 		if err != nil {
-			c.ReplyTof(event.ReplyTo, "%s: URL doesn't appear to be valid", event.Sender)
+			c.MentionReply(event.Source, "URL doesn't appear to be valid")
 			return
 		}
 
@@ -24,10 +24,10 @@ func (c *Client) isItDownCallback(event *pb.CommandEvent) {
 		}
 
 		if err != nil || resp.StatusCode != 200 {
-			c.ReplyTof(event.ReplyTo, "%s: It's not just you! %s looks down from here.", event.Sender, url)
+			c.MentionReplyf(event.Source, "It's not just you! %s looks down from here.", url)
 			return
 		}
 
-		c.ReplyTof(event.ReplyTo, "%s: It's just you! %s looks up from here!", event.Sender, url)
+		c.MentionReplyf(event.Source, "It's just you! %s looks up from here!", url)
 	}()
 }

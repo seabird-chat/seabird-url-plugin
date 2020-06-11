@@ -63,7 +63,7 @@ func handleXKCD(c *Client, event *pb.MessageEvent, u *url.URL) bool {
 		return false
 	}
 
-	c.ReplyTof(event.ReplyTo, "%s %s: %s", xkcdPrefix, scrape.Attr(n, "alt"), scrape.Attr(n, "title"))
+	c.Replyf(event.Source, "%s %s: %s", xkcdPrefix, scrape.Attr(n, "alt"), scrape.Attr(n, "title"))
 
 	return true
 }

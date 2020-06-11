@@ -103,7 +103,7 @@ func bitbucketGetUser(c *Client, event *pb.MessageEvent, url *url.URL) bool {
 	}
 
 	// Jay Vana (@jsvana)
-	c.ReplyTof(event.ReplyTo, "%s %s (@%s)", bitbucketPrefix, bu.DisplayName, bu.Username)
+	c.Replyf(event.Source, "%s %s (@%s)", bitbucketPrefix, bu.DisplayName, bu.Username)
 
 	return true
 }
@@ -135,7 +135,7 @@ func bitbucketGetRepo(c *Client, event *pb.MessageEvent, url *url.URL) bool {
 
 	out += " Last pushed to " + tm.Format("2 Jan 2006")
 
-	c.ReplyTof(event.ReplyTo, "%s %s", bitbucketPrefix, out)
+	c.Replyf(event.Source, "%s %s", bitbucketPrefix, out)
 
 	return true
 }
@@ -179,7 +179,7 @@ func bitbucketGetIssue(c *Client, event *pb.MessageEvent, url *url.URL) bool {
 
 	out += " [created " + tm.Format("2 Jan 2006") + "]"
 
-	c.ReplyTof(event.ReplyTo, "%s %s", bitbucketPrefix, out)
+	c.Replyf(event.Source, "%s %s", bitbucketPrefix, out)
 
 	return true
 }
@@ -212,7 +212,7 @@ func bitbucketGetPull(c *Client, event *pb.MessageEvent, url *url.URL) bool {
 
 	out += " [created " + tm.Format("2 Jan 2006") + "]"
 
-	c.ReplyTof(event.ReplyTo, "%s %s", bitbucketPrefix, out)
+	c.Replyf(event.Source, "%s %s", bitbucketPrefix, out)
 
 	return true
 }

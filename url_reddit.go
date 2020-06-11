@@ -72,11 +72,11 @@ func (p *RedditProvider) GetMessageCallback() MessageCallback {
 }
 
 func redditPrivmsgCallback(c *Client, event *pb.MessageEvent) {
-	for _, matches := range redditPrivmsgSubRegex.FindAllStringSubmatch(event.Message, -1) {
+	for _, matches := range redditPrivmsgSubRegex.FindAllStringSubmatch(event.Text, -1) {
 		redditGetSub(c, event, matches[1])
 	}
 
-	for _, matches := range redditPrivmsgUserRegex.FindAllStringSubmatch(event.Message, -1) {
+	for _, matches := range redditPrivmsgUserRegex.FindAllStringSubmatch(event.Text, -1) {
 		redditGetUser(c, event, matches[1])
 	}
 }
@@ -108,7 +108,7 @@ func redditGetUser(c *Client, event *pb.MessageEvent, text string) bool {
 		gold = " [gold]"
 	}
 
-	c.ReplyTof(event.ReplyTo, "%s %s%s has %d link karma and %d comment karma", redditPrefix, ru.Data.Name, gold, ru.Data.LinkKarma, ru.Data.CommentKarma)
+	c.Replyf(event.Source, "%s %s%s has %d link karma and %d comment karma", redditPrefix, ru.Data.Name, gold, ru.Data.LinkKarma, ru.Data.CommentKarma)
 
 	return true
 }
@@ -122,7 +122,7 @@ func redditGetComment(c *Client, event *pb.MessageEvent, text string) bool {
 	cm := rc[0].Data.Children[0].Data
 
 	// Title title - jsvana (/r/vim, score: 5)
-	c.ReplyTof(event.ReplyTo, "%s %s - %s (/r/%s, score: %d)", redditPrefix, cm.Title, cm.Author, cm.Subreddit, cm.Score)
+	c.Replyf(event.Source, "%s %s - %s (/r/%s, score: %d)", redditPrefix, cm.Title, cm.Author, cm.Subreddit, cm.Score)
 
 	return true
 }
@@ -134,7 +134,7 @@ func redditGetSub(c *Client, event *pb.MessageEvent, text string) bool {
 	}
 
 	// /r/vim - Description description (1 subscriber, 2 actives)
-	c.ReplyTof(event.ReplyTo, "%s %s - %s (%s %s, %s %s)",
+	c.Replyf(event.Source, "%s %s - %s (%s %s, %s %s)",
 		redditPrefix,
 		rs.Data.URL,
 		rs.Data.Description,

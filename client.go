@@ -3,16 +3,13 @@ package url
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/seabird-irc/seabird-url-plugin/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type Client struct {
-	identity         *pb.Identity
 	grpcChannel      *grpc.ClientConn
 	inner            pb.SeabirdClient
 	callbacks        map[string][]URLCallback
@@ -20,53 +17,14 @@ type Client struct {
 }
 
 func NewClient(seabirdCoreUrl, seabirdCoreToken string) (*Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	u, err := url.Parse(seabirdCoreUrl)
+	grpcChannel, err := newGRPCClient(seabirdCoreUrl, seabirdCoreToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// gRPC is a little frustrating in that it doesn't handle actual URLs, so we
-	// handle the parsing ourselves.
-	host := u.Hostname()
-	port := u.Port()
-	insecure := false
-	if u.Scheme == "http" {
-		insecure = true
-		if port == "" {
-			port = "80"
-		}
-	} else if u.Scheme == "https" {
-		if port == "" {
-			port = "443"
-		}
-	} else {
-		return nil, fmt.Errorf("Unknown scheme: %s", u.Scheme)
-	}
-
-	// If connecting over http, we need to allow insecure connections or it will
-	// not work.
-	var opts []grpc.DialOption
-	if insecure {
-		opts = append(opts, grpc.WithInsecure(), grpc.WithBlock())
-	} else {
-		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(nil)), grpc.WithBlock())
-	}
-
-	finalUrl := fmt.Sprintf("%s:%s", host, port)
-
-	channel, err := grpc.DialContext(ctx, finalUrl, opts...)
-	if err != nil {
-		return nil, err
-	}
 	return &Client{
-		identity: &pb.Identity{AuthMethod: &pb.Identity_Token{
-			Token: seabirdCoreToken,
-		}},
-		grpcChannel: channel,
-		inner:       pb.NewSeabirdClient(channel),
+		grpcChannel: grpcChannel,
+		inner:       pb.NewSeabirdClient(grpcChannel),
 		callbacks:   make(map[string][]URLCallback),
 	}, nil
 }
@@ -85,27 +43,33 @@ func (c *Client) Register(p Provider) {
 	}
 }
 
-func (c *Client) ReplyTo(target, msg string) error {
+func (c *Client) Reply(source *pb.ChannelSource, msg string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	_, err := c.inner.SendMessage(ctx, &pb.SendMessageRequest{
-		Identity: c.identity,
-		Target:   target,
-		Message:  msg,
+		ChannelId: source.GetChannelId(),
+		Text:      msg,
 	})
 	return err
 }
 
-func (c *Client) ReplyTof(target, format string, args ...interface{}) error {
-	return c.ReplyTo(target, fmt.Sprintf(format, args...))
+func (c *Client) Replyf(source *pb.ChannelSource, format string, args ...interface{}) error {
+	return c.Reply(source, fmt.Sprintf(format, args...))
+}
+
+func (c *Client) MentionReply(source *pb.ChannelSource, msg string) error {
+	return c.Reply(source, fmt.Sprintf("%s: %s", source.GetUser().GetDisplayName(), msg))
+}
+
+func (c *Client) MentionReplyf(source *pb.ChannelSource, format string, args ...interface{}) error {
+	return c.MentionReply(source, fmt.Sprintf(format, args...))
 }
 
 func (c *Client) Run() error {
 	events, err := c.inner.StreamEvents(
 		context.Background(),
 		&pb.StreamEventsRequest{
-			Identity: c.identity,
 			Commands: map[string]*pb.CommandMetadata{
 				"isitdown": {
 					Name:      "isitdown",
@@ -131,6 +95,7 @@ func (c *Client) Run() error {
 				c.isItDownCallback(v.Command)
 			}
 		case *pb.Event_Message:
+			fmt.Printf("%+v\n", v)
 			c.messageCallback(v.Message)
 		}
 	}

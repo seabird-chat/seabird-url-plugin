@@ -116,7 +116,7 @@ func (p *SpotifyProvider) GetMessageCallback() MessageCallback {
 func (p *SpotifyProvider) msgCallback(c *Client, event *pb.MessageEvent) {
 	for _, matcher := range spotifyMatchers {
 		// TODO: handle multiple matches in one message
-		if ok := p.handleTarget(matcher, matcher.uriRegex, c, event, event.Message); ok {
+		if ok := p.handleTarget(matcher, matcher.uriRegex, c, event, event.Text); ok {
 			return
 		}
 	}
@@ -153,7 +153,7 @@ func (p *SpotifyProvider) handleTarget(matcher spotifyMatch, regex *regexp.Regex
 		return false
 	}
 
-	c.ReplyTo(event.ReplyTo, msg)
+	c.Reply(event.Source, msg)
 
 	return true
 }

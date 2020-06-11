@@ -34,7 +34,7 @@ func (c *Client) messageCallback(event *pb.MessageEvent) {
 		}
 	}()
 
-	for _, rawurl := range urlRegex.FindAllString(event.Message, -1) {
+	for _, rawurl := range urlRegex.FindAllString(event.Text, -1) {
 		go func(raw string) {
 			u, err := url.ParseRequestURI(raw)
 			if err != nil {
@@ -102,7 +102,7 @@ func defaultLinkProvider(c *Client, event *pb.MessageEvent, url string) bool {
 	// If we got a result, pull the text from it
 	if ok {
 		title := newlineRegex.ReplaceAllLiteralString(scrape.Text(n), " ")
-		c.ReplyTof(event.ReplyTo, "Title: %s", title)
+		c.Replyf(event.Source, "Title: %s", title)
 		return true
 	}
 
