@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	coreURL := os.Getenv("SEABIRD_CORE_URL")
-	coreToken := os.Getenv("SEABIRD_CORE_TOKEN")
+	coreURL := os.Getenv("SEABIRD_HOST")
+	coreToken := os.Getenv("SEABIRD_TOKEN")
 
 	if coreURL == "" || coreToken == "" {
-		log.Fatal("Missing SEABIRD_CORE_URL or SEABIRD_CORE_TOKEN")
+		log.Fatal("Missing SEABIRD_HOST or SEABIRD_TOKEN")
 	}
 
 	c, err := url.NewClient(
