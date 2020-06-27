@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	url "github.com/seabird-irc/seabird-url-plugin"
 )
@@ -15,9 +16,16 @@ func main() {
 		log.Fatal("Missing SEABIRD_HOST or SEABIRD_TOKEN")
 	}
 
+	var ignoredBackends []string
+	rawIgnoredBackends := os.Getenv("IGNORED_BACKENDS")
+	if rawIgnoredBackends != "" {
+		ignoredBackends = strings.Split(rawIgnoredBackends, ",")
+	}
+
 	c, err := url.NewClient(
 		coreURL,
 		coreToken,
+		ignoredBackends,
 	)
 	if err != nil {
 		log.Fatal(err)

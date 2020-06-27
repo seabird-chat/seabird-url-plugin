@@ -3,6 +3,7 @@ package url
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/seabird-irc/seabird-url-plugin/pb"
@@ -14,18 +15,25 @@ type Client struct {
 	inner            pb.SeabirdClient
 	callbacks        map[string][]URLCallback
 	messageCallbacks []MessageCallback
+	ignoredBackends  map[string]bool
 }
 
-func NewClient(seabirdCoreUrl, seabirdCoreToken string) (*Client, error) {
+func NewClient(seabirdCoreUrl, seabirdCoreToken string, rawIgnoredBackends []string) (*Client, error) {
 	grpcChannel, err := newGRPCClient(seabirdCoreUrl, seabirdCoreToken)
 	if err != nil {
 		return nil, err
 	}
 
+	ignoredBackends := make(map[string]bool)
+	for _, backend := range rawIgnoredBackends {
+		ignoredBackends[backend] = true
+	}
+
 	return &Client{
-		grpcChannel: grpcChannel,
-		inner:       pb.NewSeabirdClient(grpcChannel),
-		callbacks:   make(map[string][]URLCallback),
+		grpcChannel:     grpcChannel,
+		inner:           pb.NewSeabirdClient(grpcChannel),
+		callbacks:       make(map[string][]URLCallback),
+		ignoredBackends: ignoredBackends,
 	}, nil
 }
 
@@ -96,6 +104,17 @@ func (c *Client) Run() error {
 			}
 		case *pb.Event_Message:
 			fmt.Printf("%+v\n", v)
+			id, err := url.Parse(v.Message.Source.ChannelId)
+			if err != nil {
+				fmt.Printf("failed to parse channel id %q: %s\n", v.Message.Source.ChannelId, err)
+				continue
+			}
+
+			if c.ignoredBackends[id.Scheme] {
+				fmt.Printf("message refers to ignored backend %s\n", id.Scheme)
+				continue
+			}
+
 			c.messageCallback(v.Message)
 		}
 	}
