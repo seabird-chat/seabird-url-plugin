@@ -7,9 +7,6 @@ WORKDIR /seabird-url
 ADD ./go.mod ./go.sum ./
 RUN go mod download
 
-ADD ./pb/* ./pb/
-RUN go generate ./...
-
 ADD . ./
 
 RUN go build -v -o /build/seabird-url-plugin ./cmd/seabird-url-plugin
