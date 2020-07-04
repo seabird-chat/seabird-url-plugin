@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/seabird-irc/seabird-url-plugin/pb"
+	"github.com/seabird-chat/seabird-go/pb"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"

@@ -9,10 +9,10 @@ import (
 	"strconv"
 
 	"github.com/google/go-github/github"
+	"github.com/seabird-chat/seabird-go/pb"
 	"golang.org/x/oauth2"
 
 	"github.com/seabird-irc/seabird-url-plugin/internal"
-	"github.com/seabird-irc/seabird-url-plugin/pb"
 )
 
 type GithubProvider struct {

@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"text/template"
 
+	"github.com/seabird-chat/seabird-go/pb"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/seabird-irc/seabird-url-plugin/internal"
-	"github.com/seabird-irc/seabird-url-plugin/pb"
 )
 
 var spotifyPrefix = "[Spotify]"

@@ -5,8 +5,9 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/seabird-chat/seabird-go/pb"
+
 	"github.com/seabird-irc/seabird-url-plugin/internal"
-	"github.com/seabird-irc/seabird-url-plugin/pb"
 )
 
 type redditUser struct {

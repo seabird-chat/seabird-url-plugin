@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 
-	"github.com/seabird-irc/seabird-url-plugin/pb"
+	"github.com/seabird-chat/seabird-go/pb"
 )
 
 // NOTE: This isn't perfect in any sense of the word, but it's pretty close

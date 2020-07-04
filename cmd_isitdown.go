@@ -3,7 +3,7 @@ package url
 import (
 	"net/url"
 
-	"github.com/seabird-irc/seabird-url-plugin/pb"
+	"github.com/seabird-chat/seabird-go/pb"
 )
 
 func (c *Client) isItDownCallback(event *pb.CommandEvent) {

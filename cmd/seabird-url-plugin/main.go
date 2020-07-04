@@ -5,10 +5,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
+
 	url "github.com/seabird-irc/seabird-url-plugin"
 )
 
 func main() {
+	_ = godotenv.Load()
+
 	coreURL := os.Getenv("SEABIRD_HOST")
 	coreToken := os.Getenv("SEABIRD_TOKEN")
 

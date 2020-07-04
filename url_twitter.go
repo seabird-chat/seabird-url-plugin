@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/ChimeraCoder/anaconda"
-	"github.com/seabird-irc/seabird-url-plugin/pb"
+	"github.com/seabird-chat/seabird-go/pb"
 )
 
 type TwitterProvider struct {
