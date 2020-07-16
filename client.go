@@ -35,10 +35,6 @@ func NewClient(seabirdCoreUrl, seabirdCoreToken string, rawIgnoredBackends []str
 	}, nil
 }
 
-func (c *Client) Close() error {
-	return c.SeabirdClient.Close()
-}
-
 func (c *Client) Register(p Provider) {
 	for k, v := range p.GetCallbacks() {
 		c.callbacks[k] = append(c.callbacks[k], v)
