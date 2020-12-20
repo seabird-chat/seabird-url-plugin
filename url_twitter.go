@@ -40,7 +40,8 @@ func (p *TwitterProvider) GetCallbacks() map[string]URLCallback {
 }
 
 func (p *TwitterProvider) GetMessageCallback() MessageCallback {
-	return p.msgCallback
+	// return p.msgCallback
+	return nil
 }
 
 func (p *TwitterProvider) msgCallback(c *Client, event *pb.MessageEvent) {

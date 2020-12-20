@@ -69,7 +69,7 @@ func (c *Client) messageCallback(event *pb.MessageEvent) {
 }
 
 // NOTE: This nasty work is done so we ignore invalid ssl certs. We know what
-// we're doing.
+// we're doing, I promise. Famous last words.
 //nolint:gosec
 var client = &http.Client{
 	Transport: &http.Transport{
