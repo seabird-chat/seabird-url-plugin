@@ -72,32 +72,32 @@ func (p *RedditProvider) GetMessageCallback() MessageCallback {
 	return redditPrivmsgCallback
 }
 
-func redditPrivmsgCallback(c *Client, event *pb.MessageEvent) {
-	for _, matches := range redditPrivmsgSubRegex.FindAllStringSubmatch(event.Text, -1) {
-		redditGetSub(c, event, matches[1])
+func redditPrivmsgCallback(c *Client, source *pb.ChannelSource, text string) {
+	for _, matches := range redditPrivmsgSubRegex.FindAllStringSubmatch(text, -1) {
+		redditGetSub(c, source, matches[1])
 	}
 
-	for _, matches := range redditPrivmsgUserRegex.FindAllStringSubmatch(event.Text, -1) {
-		redditGetUser(c, event, matches[1])
+	for _, matches := range redditPrivmsgUserRegex.FindAllStringSubmatch(text, -1) {
+		redditGetUser(c, source, matches[1])
 	}
 }
 
-func redditCallback(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func redditCallback(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	text := u.Path
 
 	//nolint:gocritic
 	if matches := redditUserRegex.FindStringSubmatch(text); len(matches) == 2 {
-		return redditGetUser(c, event, matches[1])
+		return redditGetUser(c, source, matches[1])
 	} else if matches := redditCommentRegex.FindStringSubmatch(text); len(matches) == 2 {
-		return redditGetComment(c, event, matches[1])
+		return redditGetComment(c, source, matches[1])
 	} else if matches := redditSubRegex.FindStringSubmatch(text); len(matches) == 2 {
-		return redditGetSub(c, event, matches[1])
+		return redditGetSub(c, source, matches[1])
 	}
 
 	return false
 }
 
-func redditGetUser(c *Client, event *pb.MessageEvent, text string) bool {
+func redditGetUser(c *Client, source *pb.ChannelSource, text string) bool {
 	ru := &redditUser{}
 	if err := internal.GetJSON(fmt.Sprintf("https://www.reddit.com/user/%s/about.json", text), ru); err != nil {
 		return false
@@ -109,12 +109,12 @@ func redditGetUser(c *Client, event *pb.MessageEvent, text string) bool {
 		gold = " [gold]"
 	}
 
-	c.Replyf(event.Source, "%s %s%s has %d link karma and %d comment karma", redditPrefix, ru.Data.Name, gold, ru.Data.LinkKarma, ru.Data.CommentKarma)
+	c.Replyf(source, "%s %s%s has %d link karma and %d comment karma", redditPrefix, ru.Data.Name, gold, ru.Data.LinkKarma, ru.Data.CommentKarma)
 
 	return true
 }
 
-func redditGetComment(c *Client, event *pb.MessageEvent, text string) bool {
+func redditGetComment(c *Client, source *pb.ChannelSource, text string) bool {
 	rc := []redditComment{}
 	if err := internal.GetJSON(fmt.Sprintf("https://www.reddit.com/comments/%s.json", text), rc); err != nil || len(rc) < 1 {
 		return false
@@ -123,19 +123,19 @@ func redditGetComment(c *Client, event *pb.MessageEvent, text string) bool {
 	cm := rc[0].Data.Children[0].Data
 
 	// Title title - jsvana (/r/vim, score: 5)
-	c.Replyf(event.Source, "%s %s - %s (/r/%s, score: %d)", redditPrefix, cm.Title, cm.Author, cm.Subreddit, cm.Score)
+	c.Replyf(source, "%s %s - %s (/r/%s, score: %d)", redditPrefix, cm.Title, cm.Author, cm.Subreddit, cm.Score)
 
 	return true
 }
 
-func redditGetSub(c *Client, event *pb.MessageEvent, text string) bool {
+func redditGetSub(c *Client, source *pb.ChannelSource, text string) bool {
 	rs := &redditSub{}
 	if err := internal.GetJSON(fmt.Sprintf("https://www.reddit.com/r/%s/about.json", text), rs); err != nil {
 		return false
 	}
 
 	// /r/vim - Description description (1 subscriber, 2 actives)
-	c.Replyf(event.Source, "%s %s - %s (%s %s, %s %s)",
+	c.Replyf(source, "%s %s - %s (%s %s, %s %s)",
 		redditPrefix,
 		rs.Data.URL,
 		rs.Data.Description,

@@ -14,17 +14,17 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/seabird-chat/seabird-go v0.2.4
+	github.com/seabird-chat/seabird-go v0.4.0
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.0
 	github.com/unknwon/com v1.0.1
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
-	github.com/zmb3/spotify v0.0.0-20200525010707-bc712583571e
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
-	golang.org/x/text v0.3.3 // indirect
-	google.golang.org/appengine v1.6.6 // indirect
-	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	github.com/zmb3/spotify v0.0.0-20201231194903-e2d01d9b8bd2
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	golang.org/x/oauth2 v0.0.0-20210112200429-01de73cf58bd
+	golang.org/x/sys v0.0.0-20210112091331-59c308dcf3cc // indirect
+	golang.org/x/text v0.3.5 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20210111234610-22ae2b108f89 // indirect
+	google.golang.org/grpc v1.34.1 // indirect
 )

@@ -24,17 +24,17 @@ var (
 	newlineRegex = regexp.MustCompile(`\s*\n\s*`)
 )
 
-func (c *Client) messageCallback(event *pb.MessageEvent) {
+func (c *Client) messageCallback(source *pb.ChannelSource, text string) {
 	// Run all the message matchers in a goroutine to avoid blocking the main
 	// URL matching. Note that it may be better to call this serially and let
 	// each callback spin up goroutines as needed.
 	go func() {
 		for _, cb := range c.messageCallbacks {
-			cb(c, event)
+			cb(c, source, text)
 		}
 	}()
 
-	for _, rawurl := range urlRegex.FindAllString(event.Text, -1) {
+	for _, rawurl := range urlRegex.FindAllString(text, -1) {
 		go func(raw string) {
 			u, err := url.ParseRequestURI(raw)
 			if err != nil {
@@ -55,7 +55,7 @@ func (c *Client) messageCallback(event *pb.MessageEvent) {
 
 			for _, host := range targets {
 				for _, provider := range c.callbacks[host] {
-					if ok := provider(c, event, u); ok {
+					if ok := provider(c, source, u); ok {
 						return
 					}
 				}
@@ -63,7 +63,7 @@ func (c *Client) messageCallback(event *pb.MessageEvent) {
 
 			// If we ran through all the providers and didn't reply, try with
 			// the default link provider.
-			defaultLinkProvider(c, event, raw)
+			defaultLinkProvider(c, source, raw)
 		}(rawurl)
 	}
 }
@@ -78,7 +78,7 @@ var client = &http.Client{
 	Timeout: 5 * time.Second,
 }
 
-func defaultLinkProvider(c *Client, event *pb.MessageEvent, url string) bool {
+func defaultLinkProvider(c *Client, source *pb.ChannelSource, url string) bool {
 	resp, err := client.Get(url)
 	if err != nil {
 		return false
@@ -102,7 +102,7 @@ func defaultLinkProvider(c *Client, event *pb.MessageEvent, url string) bool {
 	// If we got a result, pull the text from it
 	if ok {
 		title := newlineRegex.ReplaceAllLiteralString(scrape.Text(n), " ")
-		c.Replyf(event.Source, "Title: %s", title)
+		c.Replyf(source, "Title: %s", title)
 		return true
 	}
 

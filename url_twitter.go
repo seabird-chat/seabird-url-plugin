@@ -44,35 +44,35 @@ func (p *TwitterProvider) GetMessageCallback() MessageCallback {
 	return nil
 }
 
-func (p *TwitterProvider) msgCallback(c *Client, event *pb.MessageEvent) {
-	for _, matches := range twitterPrivmsgUserRegex.FindAllStringSubmatch(event.Text, -1) {
-		p.getUser(c, event, matches[1])
+func (p *TwitterProvider) msgCallback(c *Client, source *pb.ChannelSource, text string) {
+	for _, matches := range twitterPrivmsgUserRegex.FindAllStringSubmatch(text, -1) {
+		p.getUser(c, source, matches[1])
 	}
 }
 
-func (p *TwitterProvider) handle(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func (p *TwitterProvider) handle(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	if matches := twitterUserRegex.FindStringSubmatch(u.Path); len(matches) == 2 {
-		return p.getUser(c, event, matches[1])
+		return p.getUser(c, source, matches[1])
 	} else if matches := twitterStatusRegex.FindStringSubmatch(u.Path); len(matches) == 2 {
-		return p.getTweet(c, event, matches[1])
+		return p.getTweet(c, source, matches[1])
 	}
 
 	return false
 }
 
-func (p *TwitterProvider) getUser(c *Client, event *pb.MessageEvent, text string) bool {
+func (p *TwitterProvider) getUser(c *Client, source *pb.ChannelSource, text string) bool {
 	user, err := p.api.GetUsersShow(text, nil)
 	if err != nil {
 		return false
 	}
 
 	// Jay Vana (@jsvana) - Description description
-	c.Replyf(event.Source, "%s %s (@%s) - %s", twitterPrefix, user.Name, user.ScreenName, user.Description)
+	c.Replyf(source, "%s %s (@%s) - %s", twitterPrefix, user.Name, user.ScreenName, user.Description)
 
 	return true
 }
 
-func (p *TwitterProvider) getTweet(c *Client, event *pb.MessageEvent, text string) bool {
+func (p *TwitterProvider) getTweet(c *Client, source *pb.ChannelSource, text string) bool {
 	id, err := strconv.ParseInt(text, 10, 64)
 	if err != nil {
 		return false
@@ -84,7 +84,7 @@ func (p *TwitterProvider) getTweet(c *Client, event *pb.MessageEvent, text strin
 	}
 
 	// Tweet text (@jsvana)
-	c.Replyf(event.Source, "%s %s (@%s)", twitterPrefix, tweet.Text, tweet.User.ScreenName)
+	c.Replyf(source, "%s %s (@%s)", twitterPrefix, tweet.Text, tweet.User.ScreenName)
 
 	return true
 }

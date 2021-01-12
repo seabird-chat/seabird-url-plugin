@@ -76,7 +76,7 @@ func (p *YoutubeProvider) GetMessageCallback() MessageCallback {
 	return nil
 }
 
-func (p *YoutubeProvider) handle(c *Client, event *pb.MessageEvent, req *url.URL) bool {
+func (p *YoutubeProvider) handle(c *Client, source *pb.ChannelSource, req *url.URL) bool {
 	// Get the Video ID from the URL
 	values, _ := url.ParseQuery(req.RawQuery)
 
@@ -102,7 +102,7 @@ func (p *YoutubeProvider) handle(c *Client, event *pb.MessageEvent, req *url.URL
 		return false
 	}
 
-	c.Replyf(event.Source, "%s %s ~ %s", youtubePrefix, time, title)
+	c.Replyf(source, "%s %s ~ %s", youtubePrefix, time, title)
 
 	return true
 }

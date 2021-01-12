@@ -113,18 +113,18 @@ func (p *SpotifyProvider) GetMessageCallback() MessageCallback {
 	return p.msgCallback
 }
 
-func (p *SpotifyProvider) msgCallback(c *Client, event *pb.MessageEvent) {
+func (p *SpotifyProvider) msgCallback(c *Client, source *pb.ChannelSource, text string) {
 	for _, matcher := range spotifyMatchers {
 		// TODO: handle multiple matches in one message
-		if ok := p.handleTarget(matcher, matcher.uriRegex, c, event, event.Text); ok {
+		if ok := p.handleTarget(matcher, matcher.uriRegex, c, source, text); ok {
 			return
 		}
 	}
 }
 
-func (p *SpotifyProvider) handleURL(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func (p *SpotifyProvider) handleURL(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	for _, matcher := range spotifyMatchers {
-		if p.handleTarget(matcher, matcher.regex, c, event, u.Path) {
+		if p.handleTarget(matcher, matcher.regex, c, source, u.Path) {
 			return true
 		}
 	}
@@ -132,7 +132,7 @@ func (p *SpotifyProvider) handleURL(c *Client, event *pb.MessageEvent, u *url.UR
 	return false
 }
 
-func (p *SpotifyProvider) handleTarget(matcher spotifyMatch, regex *regexp.Regexp, c *Client, event *pb.MessageEvent, target string) bool {
+func (p *SpotifyProvider) handleTarget(matcher spotifyMatch, regex *regexp.Regexp, c *Client, source *pb.ChannelSource, target string) bool {
 	if !regex.MatchString(target) {
 		return false
 	}
@@ -153,7 +153,7 @@ func (p *SpotifyProvider) handleTarget(matcher spotifyMatch, regex *regexp.Regex
 		return false
 	}
 
-	c.Reply(event.Source, msg)
+	c.Reply(source, msg)
 
 	return true
 }

@@ -66,24 +66,24 @@ func parseUserRepoNum(matches []string) (string, string, int, error) {
 	return matches[1], matches[2], int(retInt), nil
 }
 
-func (p *GithubProvider) githubCallback(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func (p *GithubProvider) githubCallback(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	//nolint:gocritic
 	if githubUserRegex.MatchString(u.Path) {
-		return p.getUser(c, event, u.Path)
+		return p.getUser(c, source, u.Path)
 	} else if githubRepoRegex.MatchString(u.Path) {
-		return p.getRepo(c, event, u.Path)
+		return p.getRepo(c, source, u.Path)
 	} else if githubIssueRegex.MatchString(u.Path) {
-		return p.getIssue(c, event, u.Path)
+		return p.getIssue(c, source, u.Path)
 	} else if githubPullRegex.MatchString(u.Path) {
-		return p.getPull(c, event, u.Path)
+		return p.getPull(c, source, u.Path)
 	}
 
 	return false
 }
 
-func (p *GithubProvider) gistCallback(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func (p *GithubProvider) gistCallback(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	if githubGistRegex.MatchString(u.Path) {
-		return p.getGist(c, event, u.Path)
+		return p.getGist(c, source, u.Path)
 	}
 
 	return false
@@ -101,7 +101,7 @@ var userTemplate = internal.TemplateMustCompile("githubUser", `
 {{- with .user.Bio }} - {{ . }}{{ end -}}
 `)
 
-func (p *GithubProvider) getUser(c *Client, event *pb.MessageEvent, url string) bool {
+func (p *GithubProvider) getUser(c *Client, source *pb.ChannelSource, url string) bool {
 	matches := githubUserRegex.FindStringSubmatch(url)
 	if len(matches) != 2 {
 		return false
@@ -124,7 +124,7 @@ func (p *GithubProvider) getUser(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.Reply(event.Source, ret)
+	c.Reply(source, ret)
 
 	return true
 
@@ -142,7 +142,7 @@ var repoTemplate = internal.TemplateMustCompile("githubRepo", `
 {{- with .repo.StargazersCount }}, {{ prettifySuffix . }} {{ pluralizeWord . "star" }}{{ end }}
 `)
 
-func (p *GithubProvider) getRepo(c *Client, event *pb.MessageEvent, url string) bool {
+func (p *GithubProvider) getRepo(c *Client, source *pb.ChannelSource, url string) bool {
 	matches := githubRepoRegex.FindStringSubmatch(url)
 	if len(matches) != 3 {
 		return false
@@ -174,7 +174,7 @@ func (p *GithubProvider) getRepo(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.Reply(event.Source, ret)
+	c.Reply(source, ret)
 
 	return true
 
@@ -188,7 +188,7 @@ Issue #{{ .issue.Number }} on {{ .user }}/{{ .repo }} [{{ .issue.State }}]
 {{- with .issue.CreatedAt }} [created {{ . | dateFormat "2 Jan 2006" }}]{{ end }}
 `)
 
-func (p *GithubProvider) getIssue(c *Client, event *pb.MessageEvent, url string) bool {
+func (p *GithubProvider) getIssue(c *Client, source *pb.ChannelSource, url string) bool {
 	matches := githubIssueRegex.FindStringSubmatch(url)
 
 	user, repo, issueNum, err := parseUserRepoNum(matches)
@@ -216,7 +216,7 @@ func (p *GithubProvider) getIssue(c *Client, event *pb.MessageEvent, url string)
 		return false
 	}
 
-	c.Reply(event.Source, ret)
+	c.Reply(source, ret)
 
 	return true
 
@@ -233,7 +233,7 @@ Pull request #{{ .pull.Number }} on {{ .user }}/{{ .repo }} [{{ .pull.State }}]
 {{- with .pull.ChangedFiles }}, {{ pluralize . "changed file" }}{{ end }}
 `)
 
-func (p *GithubProvider) getPull(c *Client, event *pb.MessageEvent, url string) bool {
+func (p *GithubProvider) getPull(c *Client, source *pb.ChannelSource, url string) bool {
 	matches := githubPullRegex.FindStringSubmatch(url)
 
 	user, repo, pullNum, err := parseUserRepoNum(matches)
@@ -261,7 +261,7 @@ func (p *GithubProvider) getPull(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.Reply(event.Source, ret)
+	c.Reply(source, ret)
 
 	return true
 
@@ -275,7 +275,7 @@ Created {{ .gist.CreatedAt | dateFormat "2 Jan 2006" }}
 {{- with .gist.Comments }}, {{ pluralize . "comment" }}{{ end }}
 `)
 
-func (p *GithubProvider) getGist(c *Client, event *pb.MessageEvent, url string) bool {
+func (p *GithubProvider) getGist(c *Client, source *pb.ChannelSource, url string) bool {
 	matches := githubGistRegex.FindStringSubmatch(url)
 	if len(matches) != 3 {
 		return false
@@ -300,7 +300,7 @@ func (p *GithubProvider) getGist(c *Client, event *pb.MessageEvent, url string) 
 		return false
 	}
 
-	c.Reply(event.Source, ret)
+	c.Reply(source, ret)
 
 	return true
 }

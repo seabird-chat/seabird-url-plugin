@@ -31,7 +31,7 @@ func (p *XKCDProvider) GetMessageCallback() MessageCallback {
 	return nil
 }
 
-func handleXKCD(c *Client, event *pb.MessageEvent, u *url.URL) bool {
+func handleXKCD(c *Client, source *pb.ChannelSource, u *url.URL) bool {
 	if u.Path != "" && !xkcdRegex.MatchString(u.Path) {
 		return false
 	}
@@ -63,7 +63,7 @@ func handleXKCD(c *Client, event *pb.MessageEvent, u *url.URL) bool {
 		return false
 	}
 
-	c.Replyf(event.Source, "%s %s: %s", xkcdPrefix, scrape.Attr(n, "alt"), scrape.Attr(n, "title"))
+	c.Replyf(source, "%s %s: %s", xkcdPrefix, scrape.Attr(n, "alt"), scrape.Attr(n, "title"))
 
 	return true
 }
