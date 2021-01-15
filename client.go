@@ -56,7 +56,10 @@ func (c *Client) Reply(source *pb.ChannelSource, msg string) error {
 	_, err := c.Inner.SendMessage(ctx, &pb.SendMessageRequest{
 		ChannelId: source.GetChannelId(),
 		Text:      msg,
-		Tags:      map[string]string{"proxy/skip": "1"},
+		Tags: map[string]string{
+			"proxy/skip":         "1",
+			"proxy/internal-tag": "1",
+		},
 	})
 
 	return err
@@ -88,6 +91,11 @@ func (c *Client) Run() error {
 	defer events.Close()
 
 	for event := range events.C {
+		// Skip any events we sent
+		if event.Tags["proxy/internal-tag"] == "1" {
+			continue
+		}
+
 		switch v := event.GetInner().(type) {
 		case *pb.Event_Command:
 			if v.Command.Command == "isitdown" {
