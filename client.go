@@ -96,6 +96,11 @@ func (c *Client) Run() error {
 			continue
 		}
 
+		// Skip any events others asked to be skipped
+		if event.Tags["url/skip"] == "1" {
+			continue
+		}
+
 		switch v := event.GetInner().(type) {
 		case *pb.Event_Command:
 			if v.Command.Command == "isitdown" {
