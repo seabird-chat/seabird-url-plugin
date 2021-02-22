@@ -65,6 +65,7 @@ func NewRedditProvider() *RedditProvider {
 func (p *RedditProvider) GetCallbacks() map[string]URLCallback {
 	return map[string]URLCallback{
 		"reddit.com": redditCallback,
+		"old.reddit.com": redditCallback,
 	}
 }
 
