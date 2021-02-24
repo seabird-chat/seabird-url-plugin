@@ -66,9 +66,10 @@ type YoutubeProvider struct {
 
 func (p *YoutubeProvider) GetCallbacks() map[string]URLCallback {
 	return map[string]URLCallback{
-		"youtube.com":   p.handle,
-		"m.youtube.com": p.handle,
-		"youtu.be":      p.handle,
+		"youtube.com":       p.handle,
+		"m.youtube.com":     p.handle,
+		"youtu.be":          p.handle,
+		"music.youtube.com": p.handle,
 	}
 }
 
