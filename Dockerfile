@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM golang:1.14-buster as builder
+FROM golang:1.20-buster as builder
 
 RUN mkdir /build && mkdir /seabird-url
 
