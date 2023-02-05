@@ -46,9 +46,9 @@ var (
 	redditPrefix = "[Reddit]"
 
 	// /r/subreddit
-	redditPrivmsgSubRegex = regexp.MustCompile(`(?:\s|^)/r/([^\s/]+)`)
+	redditPrivmsgSubRegex = regexp.MustCompile(`(?:\s|^)/?r/([^\s/]+)`)
 	// /u/username
-	redditPrivmsgUserRegex = regexp.MustCompile(`(?:\s|^)/(?:u|user)/([^\s/]+)`)
+	redditPrivmsgUserRegex = regexp.MustCompile(`(?:\s|^)/?(?:u|user)/([^\s/]+)`)
 
 	// URL matches
 	redditUserRegex    = regexp.MustCompile(`^/(?:u|user)/([^\s/]+)$`)
@@ -64,7 +64,7 @@ func NewRedditProvider() *RedditProvider {
 
 func (p *RedditProvider) GetCallbacks() map[string]URLCallback {
 	return map[string]URLCallback{
-		"reddit.com": redditCallback,
+		"reddit.com":     redditCallback,
 		"old.reddit.com": redditCallback,
 	}
 }
