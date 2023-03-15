@@ -1,22 +1,22 @@
 # Stage 1: Build the application
-FROM golang:1.20-buster as builder
+FROM golang:1.20-bullseye as builder
 
-RUN mkdir /build && mkdir /seabird-url
+RUN mkdir /build
 
-WORKDIR /seabird-url
+WORKDIR /app
+
 ADD ./go.mod ./go.sum ./
 RUN go mod download
 
 ADD . ./
-
-RUN go build -v -o /build/seabird-url-plugin ./cmd/seabird-url-plugin
+RUN go build -v -o /build/ ./cmd/*
 
 # Stage 2: Copy files and configure what we need
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Copy the built seabird into the container
-COPY --from=builder /build/seabird-url-plugin /bin
+COPY entrypoint.sh /usr/local/bin/seabird-entrypoint.sh
+COPY --from=builder /build /bin
 
-ENTRYPOINT ["/bin/seabird-url-plugin"]
+ENTRYPOINT ["/usr/bin/seabird-entrypoint.sh"]
