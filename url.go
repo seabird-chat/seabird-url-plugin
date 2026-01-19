@@ -24,7 +24,84 @@ var (
 	newlineRegex = regexp.MustCompile(`\s*\n\s*`)
 )
 
-func (c *Client) messageCallback(source *pb.ChannelSource, text string) {
+// extractURLsFromBlocks recursively walks a block tree and extracts all URLs
+// from LinkBlock nodes.
+func extractURLsFromBlocks(block *pb.Block) []string {
+	if block == nil {
+		return nil
+	}
+
+	var urls []string
+
+	switch inner := block.Inner.(type) {
+	case *pb.Block_Link:
+		// Found a link block - extract the URL
+		if inner.Link != nil && inner.Link.Url != "" {
+			urls = append(urls, inner.Link.Url)
+		}
+		// Also check if the inner block contains more links
+		if inner.Link != nil && inner.Link.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Link.Inner)...)
+		}
+
+	case *pb.Block_Italics:
+		if inner.Italics != nil && inner.Italics.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Italics.Inner)...)
+		}
+
+	case *pb.Block_Bold:
+		if inner.Bold != nil && inner.Bold.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Bold.Inner)...)
+		}
+
+	case *pb.Block_Underline:
+		if inner.Underline != nil && inner.Underline.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Underline.Inner)...)
+		}
+
+	case *pb.Block_Strikethrough:
+		if inner.Strikethrough != nil && inner.Strikethrough.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Strikethrough.Inner)...)
+		}
+
+	case *pb.Block_Spoiler:
+		if inner.Spoiler != nil && inner.Spoiler.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Spoiler.Inner)...)
+		}
+
+	case *pb.Block_Blockquote:
+		if inner.Blockquote != nil && inner.Blockquote.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Blockquote.Inner)...)
+		}
+
+	case *pb.Block_Heading:
+		if inner.Heading != nil && inner.Heading.Inner != nil {
+			urls = append(urls, extractURLsFromBlocks(inner.Heading.Inner)...)
+		}
+
+	case *pb.Block_Container:
+		if inner.Container != nil {
+			for _, childBlock := range inner.Container.Inner {
+				urls = append(urls, extractURLsFromBlocks(childBlock)...)
+			}
+		}
+
+	case *pb.Block_List:
+		if inner.List != nil {
+			for _, childBlock := range inner.List.Inner {
+				urls = append(urls, extractURLsFromBlocks(childBlock)...)
+			}
+		}
+
+	// Text blocks don't contain URLs in the block structure
+	case *pb.Block_Text, *pb.Block_InlineCode, *pb.Block_FencedCode, *pb.Block_Timestamp:
+		// No nested blocks to process
+	}
+
+	return urls
+}
+
+func (c *Client) messageCallback(source *pb.ChannelSource, text string, rootBlock *pb.Block) {
 	// Run all the message matchers in a goroutine to avoid blocking the main
 	// URL matching. Note that it may be better to call this serially and let
 	// each callback spin up goroutines as needed.
@@ -34,7 +111,15 @@ func (c *Client) messageCallback(source *pb.ChannelSource, text string) {
 		}
 	}()
 
-	for _, rawurl := range urlRegex.FindAllString(text, -1) {
+	// Use block-based URL extraction if blocks are available, otherwise fall back to regex
+	var rawurls []string
+	if rootBlock != nil {
+		rawurls = extractURLsFromBlocks(rootBlock)
+	} else {
+		rawurls = urlRegex.FindAllString(text, -1)
+	}
+
+	for _, rawurl := range rawurls {
 		go func(raw string) {
 			u, err := url.ParseRequestURI(raw)
 			if err != nil {
