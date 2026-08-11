@@ -155,6 +155,7 @@ func (c *Client) messageCallback(source *pb.ChannelSource, text string, rootBloc
 
 // NOTE: This nasty work is done so we ignore invalid ssl certs. We know what
 // we're doing, I promise. Famous last words.
+//
 //nolint:gosec
 var client = &http.Client{
 	Transport: &http.Transport{
