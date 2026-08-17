@@ -69,14 +69,7 @@ func registerProviders(c *url.Client) {
 	}
 	c.Register(provider)
 
-	twitterConsumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
-	twitterConsumerSecret := os.Getenv("TWITTER_CONSUMER_SECRET")
-	twitterAccessToken := os.Getenv("TWITTER_ACCESS_TOKEN")
-	twitterAccessTokenSecret := os.Getenv("TWITTER_ACCESS_TOKEN_SECRET")
-	if twitterConsumerKey == "" || twitterConsumerSecret == "" || twitterAccessToken == "" || twitterAccessTokenSecret == "" {
-		log.Fatal("Missing TWITTER_CONSUMER_KEY or TWITTER_CONSUMER_SECRET or TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET")
-	}
-	provider = url.NewTwitterProvider(twitterConsumerKey, twitterConsumerSecret, twitterAccessToken, twitterAccessTokenSecret)
+	provider = url.NewTwitterProvider()
 	c.Register(provider)
 
 	provider = url.NewXKCDProvider()
