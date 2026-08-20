@@ -11,7 +11,7 @@ import (
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/seabird-irc/seabird-url-plugin/internal"
+	"github.com/seabird-chat/seabird-url-plugin/internal"
 )
 
 var spotifyPrefix = "[Spotify]"

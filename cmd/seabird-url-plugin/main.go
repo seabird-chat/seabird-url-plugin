@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	url "github.com/seabird-irc/seabird-url-plugin"
+	url "github.com/seabird-chat/seabird-url-plugin"
 )
 
 func main() {

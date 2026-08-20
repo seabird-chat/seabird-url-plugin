@@ -7,7 +7,7 @@ import (
 
 	"github.com/seabird-chat/seabird-go/pb"
 
-	"github.com/seabird-irc/seabird-url-plugin/internal"
+	"github.com/seabird-chat/seabird-url-plugin/internal"
 )
 
 type redditUser struct {

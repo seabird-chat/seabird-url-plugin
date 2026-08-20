@@ -8,7 +8,7 @@ import (
 
 	"github.com/seabird-chat/seabird-go/pb"
 
-	"github.com/seabird-irc/seabird-url-plugin/internal"
+	"github.com/seabird-chat/seabird-url-plugin/internal"
 )
 
 // The X API no longer has a free read tier, so tweet and user data comes from

@@ -8,7 +8,7 @@ import (
 	duration "github.com/channelmeter/iso8601duration"
 	"github.com/seabird-chat/seabird-go/pb"
 
-	"github.com/seabird-irc/seabird-url-plugin/internal"
+	"github.com/seabird-chat/seabird-url-plugin/internal"
 )
 
 var youtubePrefix = "[YouTube]"

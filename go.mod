@@ -1,4 +1,4 @@
-module github.com/seabird-irc/seabird-url-plugin
+module github.com/seabird-chat/seabird-url-plugin
 
 go 1.24.0
 
