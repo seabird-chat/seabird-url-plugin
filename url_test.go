@@ -55,10 +55,21 @@ func TestExtractURLs(t *testing.T) {
 				seabird.NewInlineCodeBlock("https://inline.example.com"),
 				seabird.NewFencedCodeBlock("", "https://fenced.example.com"),
 			),
-			expected: nil,
+			expected: []string{},
 		},
 		{
-			name: "text and link",
+			name: "duplicate mentions collapse",
+			block: seabird.NewContainerBlock(
+				seabird.NewTextBlock("https://example.com and "),
+				seabird.NewLinkBlock(
+					"https://example.com",
+					seabird.NewTextBlock("again"),
+				),
+			),
+			expected: []string{"https://example.com"},
+		},
+		{
+			name: "multiple urls keep message order",
 			block: seabird.NewContainerBlock(
 				seabird.NewTextBlock("https://b.example.com "),
 				seabird.NewLinkBlock(
@@ -72,7 +83,19 @@ func TestExtractURLs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			require.Equal(t, test.expected, extractURLs(test.block))
+			require.Equal(t, test.expected, cleanURLs(extractURLs(test.block)))
 		})
 	}
+}
+
+func TestTrimURL(t *testing.T) {
+	require.Equal(t, "https://example.com", trimURL("https://example.com."))
+	require.Equal(t, "https://example.com", trimURL("https://example.com>"))
+	require.Equal(t, "https://example.com", trimURL("https://example.com)"))
+	require.Equal(t, "https://example.com/a?b=c", trimURL("https://example.com/a?b=c,"))
+	require.Equal(
+		t,
+		"https://en.wikipedia.org/wiki/Go_(game)",
+		trimURL("https://en.wikipedia.org/wiki/Go_(game)"),
+	)
 }

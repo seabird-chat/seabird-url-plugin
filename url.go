@@ -84,6 +84,46 @@ func appendURLs(urls []string, block *pb.Block, inLink bool) []string {
 	return urls
 }
 
+// trimURL drops punctuation the regex took from the surrounding sentence. A
+// closing paren stays if the URL has an unmatched opening one, for links like
+// Wikipedia's /wiki/Go_(game).
+func trimURL(raw string) string {
+	for raw != "" {
+		switch raw[len(raw)-1] {
+		case '.', ',', '!', '?', ';', ':', '\'', '"', '<', '>':
+		case ')':
+			if strings.Count(raw, "(") >= strings.Count(raw, ")") {
+				return raw
+			}
+		default:
+			return raw
+		}
+
+		raw = raw[:len(raw)-1]
+	}
+
+	return raw
+}
+
+// cleanURLs trims each URL and drops repeats, keeping the order they appeared
+// in, so a message mentioning the same link twice gets one reply.
+func cleanURLs(rawurls []string) []string {
+	seen := make(map[string]bool, len(rawurls))
+	cleaned := make([]string, 0, len(rawurls))
+
+	for _, rawurl := range rawurls {
+		rawurl = trimURL(rawurl)
+		if rawurl == "" || seen[rawurl] {
+			continue
+		}
+
+		seen[rawurl] = true
+		cleaned = append(cleaned, rawurl)
+	}
+
+	return cleaned
+}
+
 func (c *Client) messageCallback(source *pb.ChannelSource, text string, rootBlock *pb.Block) {
 	// Run all the message matchers in a goroutine to avoid blocking the main
 	// URL matching. Note that it may be better to call this serially and let
@@ -104,7 +144,7 @@ func (c *Client) messageCallback(source *pb.ChannelSource, text string, rootBloc
 		rawurls = urlRegex.FindAllString(text, -1)
 	}
 
-	for _, rawurl := range rawurls {
+	for _, rawurl := range cleanURLs(rawurls) {
 		go func(raw string) {
 			u, err := url.ParseRequestURI(raw)
 			if err != nil {
