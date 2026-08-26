@@ -42,7 +42,7 @@
 
           packages.default = pkgs.buildGoModule rec {
             pname = "seabird-url-plugin";
-            version = "0.2.3";
+            version = "0.2.4-dev";
 
             src = ./.;
 
