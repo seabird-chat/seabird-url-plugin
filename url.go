@@ -24,78 +24,61 @@ var (
 	newlineRegex = regexp.MustCompile(`\s*\n\s*`)
 )
 
-// extractURLsFromBlocks recursively walks a block tree and extracts all URLs
-// from LinkBlock nodes.
-func extractURLsFromBlocks(block *pb.Block) []string {
+// extractURLs collects link targets from LinkBlock and regexes the rest out of
+// TextBlock. Reading the tree instead of the flattened text avoids matching a
+// bare URL twice, since a linkifier turns it into a link whose display text is
+// the URL and that flattens to "url (url)". Code blocks are skipped because a
+// URL in `code` is being talked about, not linked.
+func extractURLs(block *pb.Block) []string {
+	return appendURLs(nil, block, false)
+}
+
+// appendURLs walks one block. inLink skips the text scan because the link's URL
+// already covers its display text.
+func appendURLs(urls []string, block *pb.Block, inLink bool) []string {
 	if block == nil {
-		return nil
+		return urls
 	}
 
-	var urls []string
-
 	switch inner := block.Inner.(type) {
+	case *pb.Block_Text:
+		if !inLink {
+			urls = append(urls, urlRegex.FindAllString(inner.Text.GetText(), -1)...)
+		}
+
 	case *pb.Block_Link:
-		// Found a link block - extract the URL
-		if inner.Link != nil && inner.Link.Url != "" {
-			urls = append(urls, inner.Link.Url)
+		if url := inner.Link.GetUrl(); url != "" {
+			urls = append(urls, url)
 		}
-		// Also check if the inner block contains more links
-		if inner.Link != nil && inner.Link.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Link.Inner)...)
-		}
+
+		urls = appendURLs(urls, inner.Link.GetInner(), true)
 
 	case *pb.Block_Italics:
-		if inner.Italics != nil && inner.Italics.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Italics.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Italics.GetInner(), inLink)
 	case *pb.Block_Bold:
-		if inner.Bold != nil && inner.Bold.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Bold.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Bold.GetInner(), inLink)
 	case *pb.Block_Underline:
-		if inner.Underline != nil && inner.Underline.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Underline.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Underline.GetInner(), inLink)
 	case *pb.Block_Strikethrough:
-		if inner.Strikethrough != nil && inner.Strikethrough.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Strikethrough.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Strikethrough.GetInner(), inLink)
 	case *pb.Block_Spoiler:
-		if inner.Spoiler != nil && inner.Spoiler.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Spoiler.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Spoiler.GetInner(), inLink)
 	case *pb.Block_Blockquote:
-		if inner.Blockquote != nil && inner.Blockquote.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Blockquote.Inner)...)
-		}
-
+		urls = appendURLs(urls, inner.Blockquote.GetInner(), inLink)
 	case *pb.Block_Heading:
-		if inner.Heading != nil && inner.Heading.Inner != nil {
-			urls = append(urls, extractURLsFromBlocks(inner.Heading.Inner)...)
-		}
+		urls = appendURLs(urls, inner.Heading.GetInner(), inLink)
 
 	case *pb.Block_Container:
-		if inner.Container != nil {
-			for _, childBlock := range inner.Container.Inner {
-				urls = append(urls, extractURLsFromBlocks(childBlock)...)
-			}
+		for _, child := range inner.Container.GetInner() {
+			urls = appendURLs(urls, child, inLink)
 		}
-
 	case *pb.Block_List:
-		if inner.List != nil {
-			for _, childBlock := range inner.List.Inner {
-				urls = append(urls, extractURLsFromBlocks(childBlock)...)
-			}
+		for _, child := range inner.List.GetInner() {
+			urls = appendURLs(urls, child, inLink)
 		}
 
-	// Text blocks don't contain URLs in the block structure
-	case *pb.Block_Text, *pb.Block_InlineCode, *pb.Block_FencedCode, *pb.Block_Timestamp:
-		// No nested blocks to process
+	case *pb.Block_InlineCode, *pb.Block_FencedCode, *pb.Block_Timestamp:
+		// Nothing to collect.
 	}
 
 	return urls
@@ -111,10 +94,12 @@ func (c *Client) messageCallback(source *pb.ChannelSource, text string, rootBloc
 		}
 	}()
 
-	// Use block-based URL extraction if blocks are available, otherwise fall back to regex
+	// Core synthesizes a text block when the sender used the text-only API, so
+	// the walk covers backends without links too. The regex is here for cores
+	// old enough to send no blocks at all.
 	var rawurls []string
 	if rootBlock != nil {
-		rawurls = extractURLsFromBlocks(rootBlock)
+		rawurls = extractURLs(rootBlock)
 	} else {
 		rawurls = urlRegex.FindAllString(text, -1)
 	}

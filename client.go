@@ -77,11 +77,6 @@ func (c *Client) MentionReplyf(source *pb.ChannelSource, format string, args ...
 	return c.MentionReply(source, fmt.Sprintf(format, args...))
 }
 
-// isBlockEvent checks if an event uses the blocks format
-func isBlockEvent(tags map[string]string) bool {
-	return tags["core/original-format"] == "blocks"
-}
-
 func (c *Client) Run() error {
 	events, err := c.StreamEvents(map[string]*pb.CommandMetadata{
 		"isitdown": {
@@ -124,12 +119,7 @@ func (c *Client) Run() error {
 				continue
 			}
 
-			var blockToPass *pb.Block
-			if isBlockEvent(event.Tags) {
-				blockToPass = v.Message.RootBlock
-			}
-
-			c.messageCallback(v.Message.Source, v.Message.Text, blockToPass)
+			c.messageCallback(v.Message.Source, v.Message.Text, v.Message.RootBlock)
 		case *pb.Event_SendMessage:
 			fmt.Printf("%+v\n", v)
 			id, err := url.Parse(v.SendMessage.ChannelId)
@@ -143,17 +133,12 @@ func (c *Client) Run() error {
 				continue
 			}
 
-			var blockToPass *pb.Block
-			if isBlockEvent(event.Tags) {
-				blockToPass = v.SendMessage.RootBlock
-			}
-
 			// We construct a bogus ChannelSource here to make the interface
 			// simpler. Thankfully, we only use .Reply/.Replyf so we only need
 			// the channelId here.
 			c.messageCallback(&pb.ChannelSource{
 				ChannelId: v.SendMessage.ChannelId,
-			}, v.SendMessage.Text, blockToPass)
+			}, v.SendMessage.Text, v.SendMessage.RootBlock)
 		}
 	}
 
