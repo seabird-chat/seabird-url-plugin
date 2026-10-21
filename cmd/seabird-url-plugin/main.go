@@ -65,6 +65,9 @@ func registerProviders(c *url.Client) {
 	}
 	c.Register(provider)
 
+	provider = url.NewBlueskyProvider()
+	c.Register(provider)
+
 	provider = url.NewTwitterProvider()
 	c.Register(provider)
 
